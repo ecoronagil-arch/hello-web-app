@@ -1,0 +1,35 @@
+steps:
+# 1. Build the image, tagged with the Git commit
+- id: build
+  name: gcr.io/cloud-builders/docker
+  args: ['build', '--build-arg', 'APP_VERSION=$SHORT_SHA',
+         '-t', 'us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA', '.']
+
+# 2. Push it to Artifact Registry
+- id: push
+  name: gcr.io/cloud-builders/docker
+  args: ['push', 'us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA']
+
+# 3. Update the GitOps repo with the new image tag
+- id: update-gitops
+  name: gcr.io/cloud-builders/git
+  entrypoint: bash
+  secretEnv: ['GITHUB_TOKEN']
+  args:
+  - -c
+  - |
+    git clone https://ecoronagil-arch:$$GITHUB_TOKEN@github.com/ecoronagil-arch/flex-gitops-demo.git
+    cd flex-gitops-demo
+    sed -i "s|image: .*hello-web:.*|image: us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA|" clusters/demo/hello-web.yaml
+    git config user.email "cloudbuild@flex-demo.local"
+    git config user.name "Cloud Build"
+    git commit -am "Deploy hello-web $SHORT_SHA"
+    git push origin main
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/github-token/versions/latest
+    env: GITHUB_TOKEN
+
+options:
+  logging: CLOUD_LOGGING_ONLY
