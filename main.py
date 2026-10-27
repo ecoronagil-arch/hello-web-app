@@ -6,7 +6,7 @@ VERSION = os.environ.get("APP_VERSION", "dev")
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         body = f"""<html><body style="font-family:sans-serif;text-align:center;padding-top:80px">
-<h1>Hello v4 - built from Git!</h1>
+<h1>Hello v5 - shipped by a git push!</h1>
 <p>Git push &rarr; Cloud Build &rarr; GitOps repo &rarr; Config Sync &rarr; GKE</p>
 <p>Build: {VERSION}<br>Time: {datetime.datetime.utcnow():%Y-%m-%d %H:%M:%S} UTC</p>
 </body></html>"""
