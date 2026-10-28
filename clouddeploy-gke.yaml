@@ -1,0 +1,26 @@
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: hello-web-gke-pipeline
+serialPipeline:
+  stages:
+  - targetId: gke-prod
+    profiles: []
+    strategy:
+      canary:
+        runtimeConfig:
+          kubernetes:
+            serviceNetworking:
+              service: "hello-web-gke"
+              deployment: "hello-web-gke"
+        canaryDeployment:
+          percentages: [25, 50]
+          verify: false
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: gke-prod
+description: GKE production (canary namespace)
+gke:
+  cluster: projects/totemic-audio-512904-f8/locations/us-west2/clusters/gitops-demo

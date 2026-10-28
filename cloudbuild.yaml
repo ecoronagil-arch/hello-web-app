@@ -38,6 +38,20 @@ steps:
       --region=us-west2 \
       --images=hello-web=us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA
 
+# 5. Hand the same image to the GKE canary pipeline
+- id: release-gke
+  name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: bash
+  args:
+  - -c
+  - |
+    gcloud deploy releases create gke-$SHORT_SHA-$$(date +%s) \
+      --delivery-pipeline=hello-web-gke-pipeline \
+      --region=us-west2 \
+      --source=gke \
+      --gcs-source-staging-dir=gs://$PROJECT_ID-deploy-staging/source \
+      --images=hello-web=us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA
+      
 availableSecrets:
   secretManager:
   - versionName: projects/$PROJECT_ID/secrets/github-token/versions/latest
