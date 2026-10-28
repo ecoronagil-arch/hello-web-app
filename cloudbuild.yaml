@@ -10,7 +10,7 @@ steps:
   name: gcr.io/cloud-builders/docker
   args: ['push', 'us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA']
 
-# 3. Update the GitOps repo with the new image tag
+# 3. Update the GitOps repo (keeps the GKE demo in sync)
 - id: update-gitops
   name: gcr.io/cloud-builders/git
   entrypoint: bash
@@ -25,6 +25,18 @@ steps:
     git config user.name "Cloud Build"
     git commit -am "Deploy hello-web $SHORT_SHA"
     git push origin main
+
+# 4. NEW: hand the image to Cloud Deploy (starts the Cloud Run canary)
+- id: release
+  name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: bash
+  args:
+  - -c
+  - |
+    gcloud deploy releases create rel-$SHORT_SHA-$$(date +%s) \
+      --delivery-pipeline=hello-web-pipeline \
+      --region=us-west2 \
+      --images=hello-web=us-west2-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/hello-web:$SHORT_SHA
 
 availableSecrets:
   secretManager:

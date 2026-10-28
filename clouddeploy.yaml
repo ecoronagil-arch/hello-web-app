@@ -1,0 +1,24 @@
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: hello-web-pipeline
+serialPipeline:
+  stages:
+  - targetId: prod-run
+    profiles: []
+    strategy:
+      canary:
+        runtimeConfig:
+          cloudRun:
+            automaticTrafficControl: true
+        canaryDeployment:
+          percentages: [10, 50]
+          verify: false
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: prod-run
+description: Cloud Run production
+run:
+  location: projects/totemic-audio-512904-f8/locations/us-west2
